@@ -109,17 +109,19 @@ add_action( 'wp_head', 'ryviu_custom_script_header' );
 function ryviu_custom_script_header(){
 	global $RYVIU;
 	
-	$element_trigger_click   = RyviuSettings::get_option( 'element_trigger_click' );
-	$element_trigger_click   = (isset($element_trigger_click) && !empty($element_trigger_click )) ? $element_trigger_click : '.ryviu_reviews_tab_tab > a';
-	$active_reviews_tab      = RyviuSettings::get_option( 'active_reviews_tab' );
-	$active_reviews_tab      = (isset($active_reviews_tab) && !empty($active_reviews_tab )) ? 1 : 0;
-	$position_display        = RyviuSettings::get_option( 'position_display' );
-	$position_display        = (isset($position_display) && !empty($position_display )) ? $position_display : 1;
+	$element_trigger_click   = RyviuSettings::get_option('element_trigger_click');
+    $element_trigger_click   = !empty($element_trigger_click) ? $element_trigger_click : '.ryviu_reviews_tab_tab > a';
 
-	$enable_ajax_add_to_cart = RyviuSettings::get_option( 'enable_ajax_add_to_cart' );
-	$enable_ajax_add_to_cart = (isset($enable_ajax_add_to_cart) && !empty($active_reviews_tab) ) ? 1 : 0;
+    $active_reviews_tab      = RyviuSettings::get_option('active_reviews_tab');
+    $active_reviews_tab      = !empty($active_reviews_tab) ? 1 : 0;
 
-	wp_add_inline_script( 'ryviu-local', 'var ryviu_app = {active_reviews_tab: '. $active_reviews_tab .', position_display: '. $position_display .', enable_ajax_add_to_cart: '.$enable_ajax_add_to_cart.', element_trigger_click: "'.$element_trigger_click.'"};', 'before' );
+    $position_display        = RyviuSettings::get_option('position_display');
+    $position_display        = !empty($position_display) ? $position_display : 1;
+
+    $enable_ajax_add_to_cart = RyviuSettings::get_option('enable_ajax_add_to_cart');
+    $enable_ajax_add_to_cart = !empty($enable_ajax_add_to_cart) ? 1 : 0;
+
+	wp_add_inline_script( 'ryviu-app', 'var ryviu_app = {active_reviews_tab: '. $active_reviews_tab .', position_display: '. $position_display .', enable_ajax_add_to_cart: '.$enable_ajax_add_to_cart.', element_trigger_click: "'.$element_trigger_click.'"};', 'before' );
 }
 
 /** Make some display setting for ryviu **/
@@ -290,6 +292,7 @@ function ryviu_wiget_get_meta_info($product, $alway_update = false){
 function check_ryviu_setting($meta_name) {
 	$options  = get_option( 'ryviu_settings_reviews' );
 	if(is_array($options) && isset($options[$meta_name]) && $options[$meta_name] !== ''){
+		
 		return true;
 	}
 	return false;
@@ -310,24 +313,67 @@ function ryviu_widget($type = 'widget'){
 		if($product_handle){
 			// Reviews Total Widget
 			if($type == 'total' || $type == 'collection'){
-				$attr_div = check_ryviu_setting('show_average_rating') ? 'class="r-show-avg" ' : '';
-				$reviews_data = htmlspecialchars(get_post_meta($product->get_id(), 'ryviu_product_reviews_info', true), ENT_QUOTES, 'UTF-8');
-				$attr_div = $type == 'collection' ? 'collection="1" ' :'';
-				echo '<div class="review-widget"><ryviu-widget-total '.$attr_div.'product_id = "'.$product->get_id().'" handle="'.$product_handle.'" reviews_data="'. $reviews_data .'"></ryviu-widget-total></div>';
+				
+				// Check if 'show_average_rating' setting is enabled
+				$attr_class = check_ryviu_setting('show_average_rating') ? 'class="r-show-avg"' : '';
+
+				// Prepare additional attributes for collection type
+				$attr_collection = ($type === 'collection') ? 'collection="1"' : '';
+				// Safely retrieve and escape reviews data
+
+				$reviews_data = htmlspecialchars(
+					get_post_meta($product->get_id(), 'ryviu_product_reviews_info', true), 
+					ENT_QUOTES, 
+					'UTF-8'
+				);
+
+				// Combine all attributes
+				$attributes = trim("$attr_class $attr_collection");
+
+				// Output the HTML
+				echo sprintf(
+					'<div class="review-widget">
+						<ryviu-widget-total %s product_id="%d" handle="%s" reviews_data="%s"></ryviu-widget-total>
+					</div>',
+					$attributes,
+					$product->get_id(),
+					esc_attr($product_handle),
+					$reviews_data
+				);
 
 			// Reviews Widget
 			}else{
-				$reviews_class = check_ryviu_setting('one_column_mobile') ? 'r--mobile-1' : '';
+				// Initialize the reviews class
+				$reviews_class = '';
 
-				if (check_ryviu_setting('remove_write_review')) {
-					if (!is_user_logged_in()) {
-						$reviews_class .= ' r--rm-ware';
-					}
+				// Check for one-column mobile setting
+				if (check_ryviu_setting('one_column_mobile')) {
+					$reviews_class .= 'r--mobile-1';
 				}
 
-				$special_class = $reviews_class ? 'class="' . $reviews_class . '" ' : '';
-				$image = wp_get_attachment_image_src( get_post_thumbnail_id( $product->get_id() ), 'single-post-thumbnail' );
-				echo '<div class="lt-block-reviews"><ryviu-widget '.$special_class.' handle="'.$product_handle.'" product_id="'.$product->get_id().'" title_product="'.$product->get_name().'" image_product="'.$image[0].'"></ryviu-widget></div>';
+				// Check for remove_write_review and user login status
+				if (check_ryviu_setting('remove_write_review') && !is_user_logged_in()) {
+					$reviews_class .= ' r--rm-ware';
+				}
+
+				// Prepare the class attribute if there are any classes
+				$special_class = $reviews_class ? 'class="' . esc_attr(trim($reviews_class)) . '"' : '';
+
+				// Get the product image URL safely
+				$image = wp_get_attachment_image_src(get_post_thumbnail_id($product->get_id()), 'single-post-thumbnail');
+				$image_url = isset($image[0]) ? esc_url($image[0]) : '';
+
+				// Output the HTML
+				echo sprintf(
+					'<div class="lt-block-reviews">
+						<ryviu-widget %s handle="%s" product_id="%d" title_product="%s" image_product="%s"></ryviu-widget>
+					</div>',
+					$special_class,
+					esc_attr($product_handle),
+					$product->get_id(),
+					esc_attr($product->get_name()),
+					$image_url
+				);
 			}
 		}
 	}

@@ -20,6 +20,8 @@ ryviu-widget {
     display: inline-flex !important;
 }
 
-.r--rm-ware #show-modal-wp {
+.r--rm-ware #show-modal-wp,
+.r--rm-ware .Ryviu-Empty-Des,
+.r--rm-ware .Ryviu-Empty-Button{
     display: none !important;
 }

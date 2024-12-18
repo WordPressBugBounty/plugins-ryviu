@@ -15,11 +15,11 @@
  * Plugin Name:       Ryviu - Product Reviews for WooCommerce
  * Plugin URI:        https://www.ryviu.com
  * Description:       Display reviews in product page for woocommerce, manager data and get from https://app.ryviu.io
- * Version:           3.1.25
+ * Version:           3.1.26
  * Requires at least: 4.0
- * Tested up to:      6.6
+ * Tested up to:      6.7
  * WC requires at least: 3.0
- * WC tested up to:   9.1
+ * WC tested up to:   9.5
  * Author:            Ryviu
  * Author URI:        https://www.ryviu.com
  * License:           GPL-2.0+
@@ -36,7 +36,7 @@ $urlparts = wp_parse_url( site_url() );
 $domain   = $urlparts['host'];
 
 define('RYVIU_SHOP_DOMAIN', $domain);
-define('RYVIU_WOO_VERSION', '3.1.25');
+define('RYVIU_WOO_VERSION', '3.1.26');
 defined('DS') ? null : define('DS', DIRECTORY_SEPARATOR);
 define('RYVIU_DIR_PATH', plugin_dir_path(__FILE__) );
 define('RYVIU_URL_ASSETS', plugins_url( 'assets/', __FILE__ ) );
@@ -79,7 +79,7 @@ function r_admin_notices() {
 	
 	$settings = get_option( 'ryviu_client_settings' );
 	
-	$image_url = RYVIU_URL_ASSETS.'images/logo-ryviu-v8.svg';
+	$image_url = RYVIU_URL_ASSETS.'images/logo-ryviu-v9.png';
 
 	if(!$settings || $settings == new \stdClass()){
 		echo '<div class="notice notice-error is-dismissible r-cl-connect"><div class="r--notices"><img src="'.$image_url.'" alt="" /><p><b>Ryviu:</b> It looks like there is a problem connecting your store to Ryviu. Please <a class="ryviu-check-connect" href="javascript:void(0)">click here</a> to check the issue, or please <a target="_blank" href="https://www.ryviu.com/contact-us">contact us</a> for help.</p></div></div>';

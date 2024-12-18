@@ -57,7 +57,7 @@ class RyviuSettings{
     {
         // Set class property
         $this->options = get_option( 'ryviu_settings_reviews' );
-        $image_url = RYVIU_URL_ASSETS.'images/logo-ryviu-v8.svg';
+        $image_url = RYVIU_URL_ASSETS.'images/logo-ryviu-v9.png';
         ?>
         <div class="ryviu-page--header">
             <img class="ryviu-page--image" src="<?php echo $image_url; ?>" alt="Ryviu Plugin"/>
