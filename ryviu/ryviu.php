@@ -17,9 +17,9 @@
  * Description:       Display reviews in product page for woocommerce, manager data and get from https://app.ryviu.io
  * Version:           3.1.26
  * Requires at least: 4.0
- * Tested up to:      6.7
+ * Tested up to:      6.8
  * WC requires at least: 3.0
- * WC tested up to:   9.5
+ * WC tested up to:   10.1
  * Author:            Ryviu
  * Author URI:        https://www.ryviu.com
  * License:           GPL-2.0+

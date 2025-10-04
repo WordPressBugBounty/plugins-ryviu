@@ -3,9 +3,9 @@ Contributors: ryviu
 Donate link: https://www.ryviu.com/pricing
 Tags: reviews, dropshiping, woocommerce reviews, fake reviews, manage reviews
 Requires at least: 4.0
-Tested up to: 6.7
+Tested up to: 6.8
 WC requires at least: 3.0
-WC tested up to: 9.5
+WC tested up to: 10.1
 Stable tag: 3.1.26
 License: GPLv2 or later
 License URI: http://www.gnu.org/licenses/gpl-2.0.html
@@ -14,7 +14,7 @@ Install Ryviu quickly and easily into your WordPress site. Boost eco-friendly eC
 
 == Description ==
 
-Ryviu is a product review app designed to help you generate eCommerce social proof, increase trust, and boost sales. It enables you to import reviews from AliExpress, Amazon, Etsy, DHgate, Walmart, and Shopee to your store in just a few steps. With Ryviu, you can easily customize and display these reviews on your store.
+Ryviu is a product review app designed to help you generate eCommerce social proof, increase trust, and boost sales. It enables you to import reviews from AliExpress, Amazon, Etsy, DHgate and Walmart to your store in just a few steps. With Ryviu, you can easily customize and display these reviews on your store.
 
 Our plugin seamlessly integrates with WooCommerce, allowing you to showcase reviews imported through Ryviu directly on your WooCommerce site.
 
@@ -24,7 +24,7 @@ Our plugin seamlessly integrates with WooCommerce, allowing you to showcase revi
 
 &#9658; **Import/Export Reviews:** 
 
- - Import reviews from AliExpress, Amazon, Etsy, DHgate, Walmart.com, and Shopee.
+ - Import reviews from AliExpress, Amazon, Etsy, DHgate and Walmart.com.
  - Import reviews by country or images.
  - Filter and import high-rating reviews.
  - Remove empty reviews during import.
