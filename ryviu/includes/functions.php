@@ -16,13 +16,18 @@ if ( ! function_exists( 'ryviu_get_page_id' ) ) {
 	 * @return int $page_id Page id
 	 */
 	function ryviu_get_page_id() {
-		$page_id = get_queried_object_id();
+		global $wp_query;
+		$page_id = 0;
 
-		if ( class_exists( 'woocommerce' ) ) {
-			if ( is_shop() ) {
-				$page_id = get_option( 'woocommerce_shop_page_id' );
-			} elseif ( is_product_category() ) {
-				$page_id = false;
+		if ( isset( $wp_query ) && is_object( $wp_query ) ) {
+			$page_id = get_queried_object_id();
+
+			if ( class_exists( 'woocommerce' ) ) {
+				if ( function_exists( 'is_shop' ) && is_shop() ) {
+					$page_id = get_option( 'woocommerce_shop_page_id' );
+				} elseif ( function_exists( 'is_product_category' ) && is_product_category() ) {
+					$page_id = false;
+				}
 			}
 		}
 
@@ -118,10 +123,7 @@ function ryviu_custom_script_header(){
     $position_display        = RyviuSettings::get_option('position_display');
     $position_display        = !empty($position_display) ? $position_display : 1;
 
-    $enable_ajax_add_to_cart = RyviuSettings::get_option('enable_ajax_add_to_cart');
-    $enable_ajax_add_to_cart = !empty($enable_ajax_add_to_cart) ? 1 : 0;
-
-	wp_add_inline_script( 'ryviu-app', 'var ryviu_app = {active_reviews_tab: '. $active_reviews_tab .', position_display: '. $position_display .', enable_ajax_add_to_cart: '.$enable_ajax_add_to_cart.', element_trigger_click: "'.$element_trigger_click.'"};', 'before' );
+	wp_add_inline_script( 'ryviu-app', 'var ryviu_app = {active_reviews_tab: '. $active_reviews_tab .', position_display: '. $position_display .', element_trigger_click: "'.$element_trigger_click.'"};', 'before' );
 }
 
 /** Make some display setting for ryviu **/
@@ -677,38 +679,6 @@ function ryviu_display_position_hook($name = ''){
 
 }
 
-/**
- * Description for this functions
- *
- * @param Request object $request Data.
- * @return JSON data
- */
-add_action( 'wp_ajax_ryviu_add_to_cart', 'ryviu_add_to_cart' );
-add_action( 'wp_ajax_nopriv_ryviu_add_to_cart', 'ryviu_add_to_cart' );
-function ryviu_add_to_cart() {
-    global $woocommerce;
-	$status = false;
-
-    $product_data = $_POST['data'];
-
-    $product_id = $product_data['product_id'];
-    $quantity = $product_data['quantity'];
-    $variation_id = $product_data['variation_id'];
-
-    $cart_count_before = $woocommerce->cart->get_cart_contents_count();
-    $woocommerce->cart->add_to_cart($product_id, $quantity, $variation_id);
-    $cart_count_after = $woocommerce->cart->get_cart_contents_count();
-
-    if($cart_count_after > $cart_count_before){
-	    $status = true;
-    }
-
-    $output = array(
-	    'status' => $status
-    );
-
-    wp_send_json($output);
-}
 
 /**
  * Description for this functions

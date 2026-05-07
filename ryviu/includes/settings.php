@@ -386,21 +386,6 @@ class RyviuSettings{
         echo '<p class="custom_position_display_reviews r--alshow">Add our PHP code or Shortcode anywhere in the single product page: <code><input class="medium-text" type="text" readonly="readonly" value="<?php do_action( \'ryviu_question_and_answer\' ); ?>" style="min-width: 315px;color: #000;" /><input class="medium-text" type="text" readonly="readonly" value="[ryviu_question_and_answer]" style="min-width: 315px;color: #000;" /></code></p>';
     }
 
-    public function enable_ajax_add_to_cart_callback(){
-        $select = 0;
-
-        if($this->options['enable_ajax_add_to_cart']){
-            $select = $this->options['enable_ajax_add_to_cart'];
-        }
-        
-        echo '<select id="position_display" class="ryviu_settings_reviews" name="ryviu_settings_reviews[enable_ajax_add_to_cart]">';
-        foreach (array('1' => 'Yes', '0' => 'No') as $key => $data) {
-            echo '<option value="'. $key .'" '. $this->check_selected($select, $key) .'>'. $data .'</option>';
-        }
-        echo '</select>';
-
-        echo '<p>This option will replace default add to cart by ajax';
-    }
 }
 
 if( is_admin() ){

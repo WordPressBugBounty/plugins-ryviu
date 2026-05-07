@@ -12,14 +12,14 @@
  * @package           Ryviu
  *
  * @wordpress-plugin
- * Plugin Name:       Ryviu - Product Reviews for WooCommerce
+ * Plugin Name:       Ryviu – Review Importer & Product Reviews
  * Plugin URI:        https://www.ryviu.com
- * Description:       Display reviews in product page for woocommerce, manager data and get from https://app.ryviu.io
- * Version:           3.1.26
+ * Description:       Import product reviews from AliExpress, Amazon, and Etsy to WooCommerce in seconds. Boost social proof for your dropshipping store with photo reviews and Q&A. With Ryviu, you can easily customize and display these reviews on your store.
+ * Version:           3.1.27
  * Requires at least: 4.0
- * Tested up to:      6.8
+ * Tested up to:      6.9
  * WC requires at least: 3.0
- * WC tested up to:   10.1
+ * WC tested up to:   10.7
  * Author:            Ryviu
  * Author URI:        https://www.ryviu.com
  * License:           GPL-2.0+
@@ -36,7 +36,7 @@ $urlparts = wp_parse_url( site_url() );
 $domain   = $urlparts['host'];
 
 define('RYVIU_SHOP_DOMAIN', $domain);
-define('RYVIU_WOO_VERSION', '3.1.26');
+define('RYVIU_WOO_VERSION', '3.1.27');
 defined('DS') ? null : define('DS', DIRECTORY_SEPARATOR);
 define('RYVIU_DIR_PATH', plugin_dir_path(__FILE__) );
 define('RYVIU_URL_ASSETS', plugins_url( 'assets/', __FILE__ ) );
@@ -87,7 +87,7 @@ function r_admin_notices() {
 	}else{
 		$ryviu_settings = get_option( 'ryviu_settings_reviews' );
 		$ryviu_version = get_option( 'ryviu_version' );
-		if (array_key_exists('ryviu_frontend_version', $ryviu_settings)) {
+		if (is_array($ryviu_settings) && array_key_exists('ryviu_frontend_version', $ryviu_settings)) {
 			$ryviu_frontend_version = $ryviu_settings['ryviu_frontend_version'];
 			
 			if(!$ryviu_version){

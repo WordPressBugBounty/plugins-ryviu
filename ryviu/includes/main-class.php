@@ -37,6 +37,9 @@ class RyviuMain {
                                     update_option('ryviu_version', $settings_body->ryviu_frontend_version);
 
                                     $options = get_option('ryviu_settings_reviews');
+                                    if (!is_array($options)) {
+                                        $options = array();
+                                    }
                                     $options['ryviu_frontend_version'] = $settings_body->ryviu_frontend_version;
                                     update_option('ryviu_settings_reviews', $options);
                                 }
@@ -124,8 +127,8 @@ class RyviuMain {
         if(isset($settings) && $settings != ''){
             if(isset($settings->design_settings)){
                 $wc_options = get_option('woocommerce_permalinks');
-                $product_base = $wc_options['product_base'];
-                if($product_base[0] == '/'){
+                $product_base = (is_array($wc_options) && !empty($wc_options['product_base'])) ? $wc_options['product_base'] : 'product';
+                if(isset($product_base[0]) && $product_base[0] == '/'){
                     $product_base = substr($product_base, 1, strlen($product_base)-1);
                 }
                 if(strpos($product_base, '%') > -1){

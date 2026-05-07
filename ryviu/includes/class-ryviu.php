@@ -36,7 +36,6 @@ class RyviuWoo{
 		include_once RYVIU_DIR_PATH . 'includes/settings.php';
 		include_once RYVIU_DIR_PATH . 'includes/functions.php';
 		include_once RYVIU_DIR_PATH . 'includes/woo-hooks.php';
-		include_once RYVIU_DIR_PATH . 'includes/class-ryviu-hook.php';
 	}
 
 	/**

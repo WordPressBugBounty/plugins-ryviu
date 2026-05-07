@@ -1,12 +1,12 @@
-=== Ryviu - Product Reviews for WooCommerce ===
+=== Ryviu – Review Importer & Product Reviews ===
 Contributors: ryviu
 Donate link: https://www.ryviu.com/pricing
 Tags: reviews, dropshiping, woocommerce reviews, fake reviews, manage reviews
 Requires at least: 4.0
-Tested up to: 6.8
+Tested up to: 6.9
 WC requires at least: 3.0
-WC tested up to: 10.1
-Stable tag: 3.1.26
+WC tested up to: 10.7
+Stable tag: 3.1.27
 License: GPLv2 or later
 License URI: http://www.gnu.org/licenses/gpl-2.0.html
 
@@ -14,9 +14,11 @@ Install Ryviu quickly and easily into your WordPress site. Boost eco-friendly eC
 
 == Description ==
 
-Ryviu is a product review app designed to help you generate eCommerce social proof, increase trust, and boost sales. It enables you to import reviews from AliExpress, Amazon, Etsy, DHgate and Walmart to your store in just a few steps. With Ryviu, you can easily customize and display these reviews on your store.
+Import product reviews from AliExpress, Amazon, and Etsy to WooCommerce in seconds.
 
-Our plugin seamlessly integrates with WooCommerce, allowing you to showcase reviews imported through Ryviu directly on your WooCommerce site.
+Ryviu helps you build trust and boost sales with photo reviews, Q&A, and customizable review displays. Easily showcase real customer feedback on your store to increase conversions.
+
+Seamlessly integrated with WooCommerce, Ryviu makes it simple to import, manage, and display reviews—all in one place.
 
 >[Ryviu Docs](http://bit.ly/2woo98O "Ryviu Docs") | [Home Page](https://www.ryviu.com "Ryviu Homepage") | [Contact](https://www.ryviu.com/contact-us "Contact")
 
@@ -66,6 +68,9 @@ Our plugin seamlessly integrates with WooCommerce, allowing you to showcase revi
 3. Go to the plugin page in your Wordpress admin account and install Ryviu Plugin
 
 == Changelog ==
+
+= 3.1.26 =
+- Fix bug sync reviews and widget
 
 = 3.1.25 =
 - Improvement: Support High-Performance Order Storage (HPOS) for the new WooCommerce versions and backward compatibility with the old versions
