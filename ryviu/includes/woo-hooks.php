@@ -86,7 +86,7 @@ function ryviu_hook_send($endpoint, $post){
 
 	    $body_arr = array(
 			'product' => $postData,
-			'X_RV_Webhook_Source' => site_url(),
+			'X_RV_Webhook_Source' => constant('RYVIU_SHOP_DOMAIN'),
 			'X_RV_Webhook_Topic' => $product_update_hook['topic'],
 			'X_RV_Webhook_Signature' => '',
 		);

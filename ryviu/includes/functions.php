@@ -88,11 +88,12 @@ function ryviu_set_flatform(){
 		$rocket_param = 'data-cfasync="false" ';
 	}
 
-	$shop_url = site_url();
-	$domain = str_replace(array('https://', 'http://'), '', $shop_url);
-	
+	$domain = constant('RYVIU_SHOP_DOMAIN');
+	$shop_url = 'https://' . $domain;
+
 	if($settings){
-		echo '<script '.$rocket_param.'type="text/javascript">var ryviu_WC = {domain: "'. $domain .'", shop_url: "'. $shop_url .'"}, ryviu_global_settings = '.$settings.';</script>';
+		$ryviu_locale = explode('_', get_locale())[0];
+		echo '<script '.$rocket_param.'type="text/javascript">window.__ryviu_locale_key__ = "'. esc_js($ryviu_locale) .'"; var ryviu_WC = {domain: "'. $domain .'", shop_url: "'. $shop_url .'"}, ryviu_global_settings = '.$settings.';</script>';
 	}
 }
 
@@ -238,7 +239,7 @@ function ryviu_badge_section() {
 }
 
 function ryviu_wiget_get_meta_info($product, $alway_update = false){
-	$shop_domain = str_replace( array( 'http://', 'https://' ), '', site_url() );
+	$shop_domain = constant('RYVIU_SHOP_DOMAIN');
 
 	$product_handle = $product->get_slug();
 	if(!$product_handle){
@@ -737,6 +738,9 @@ function ryviu_woo_product_custom_column_content($column_name, $post_ID) {
  */
 add_action( 'wp_ajax_ryviu_check_connect', 'ryviu_check_connect' );
 function ryviu_check_connect() {
+	if ( ! current_user_can( 'manage_options' ) ) {
+		wp_send_json_error( 'Unauthorized' );
+	}
 	RyviuMain::check_connect_ryviu(true);
 }
 
@@ -748,6 +752,9 @@ function ryviu_check_connect() {
  */
 add_action( 'wp_ajax_ryviu_update_frontend', 'ryviu_update_frontend' );
 function ryviu_update_frontend() {
+	if ( ! current_user_can( 'manage_options' ) ) {
+		wp_send_json_error( 'Unauthorized' );
+	}
 	RyviuMain::ryviu_update_frontend(2);
 }
 
@@ -759,6 +766,9 @@ function ryviu_update_frontend() {
  */
 add_action( 'wp_ajax_ryviu_update_meta', 'ryviu_update_meta_total' );
 function ryviu_update_meta_total() {
+	if ( ! current_user_can( 'edit_posts' ) ) {
+		wp_send_json_error( 'Unauthorized' );
+	}
 	$product = wc_get_product($_POST['product_id']);
 	if($product){
 		$meta_info_obj = ryviu_wiget_get_meta_info($product, true);

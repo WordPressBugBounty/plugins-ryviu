@@ -99,7 +99,7 @@ class RyviuApiController {
 			$consumer_secret = isset($request['consumer_secret'])? $request['consumer_secret']: '';
 			$consumer_key = wc_api_hash($consumer_key);
 
-			$results = $wpdb->get_results( "SELECT * FROM $wc_api_table WHERE consumer_key = '$consumer_key' AND consumer_secret = '$consumer_secret'" );
+			$results = $wpdb->get_results( $wpdb->prepare( "SELECT * FROM $wc_api_table WHERE consumer_key = %s AND consumer_secret = %s", $consumer_key, $consumer_secret ) );
 
 			if(!$results){
 				$request_error = true;

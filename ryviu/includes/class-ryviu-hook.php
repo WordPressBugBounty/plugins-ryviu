@@ -30,15 +30,49 @@ class Ryviu_Webhook {
         register_rest_route($namespace, '/update-settings', array(
             'methods'  => 'POST',
             'callback' => array($this, 'webhook_update_settings_callback'),
-            'permission_callback' => '__return_true',
+            'permission_callback' => array($this, 'verify_webhook_request'),
         ));
 
         register_rest_route($namespace, '/update-featured', array(
             'methods'  => 'POST',
             'callback' => array($this, 'webhook_update_featured_callback'),
-            'permission_callback' => '__return_true',
+            'permission_callback' => array($this, 'verify_webhook_request'),
         ));
 
+    }
+
+    /**
+     * Verify the caller owns a valid WooCommerce REST API key/secret pair
+     * before allowing it to write Ryviu settings. Mirrors the auth used by
+     * RyviuApiController::check() so every inbound Ryviu endpoint shares the
+     * same trust model instead of being open to unauthenticated callers.
+     */
+    public function verify_webhook_request( WP_REST_Request $request ) {
+        global $wpdb;
+
+        $consumer_key    = $request->get_param( 'consumer_key' );
+        $consumer_secret = $request->get_param( 'consumer_secret' );
+
+        if ( empty( $consumer_key ) || empty( $consumer_secret ) ) {
+            return new WP_Error( 'ryviu_rest_forbidden', 'Missing API credentials', array( 'status' => 401 ) );
+        }
+
+        $wc_api_table = $wpdb->prefix . 'woocommerce_api_keys';
+        $hashed_key   = wc_api_hash( $consumer_key );
+
+        $result = $wpdb->get_row(
+            $wpdb->prepare(
+                "SELECT key_id FROM $wc_api_table WHERE consumer_key = %s AND consumer_secret = %s",
+                $hashed_key,
+                $consumer_secret
+            )
+        );
+
+        if ( ! $result ) {
+            return new WP_Error( 'ryviu_rest_forbidden', 'Invalid API credentials', array( 'status' => 401 ) );
+        }
+
+        return true;
     }
 
     public function webhook_update_featured_callback(WP_REST_Request $request) {

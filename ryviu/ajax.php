@@ -12,6 +12,10 @@ if($_REQUEST && isset($_REQUEST['action'])){
 	$action = $_REQUEST['action'];
 
 	if($action == 'updateSettings'){
+		if ( ! current_user_can( 'manage_options' ) ) {
+			wp_send_json( array( 'msg' => 'Unauthorized' ), 403 );
+		}
+
 		$data = $_REQUEST['data'];
 
 		if ( base64_encode(base64_decode($data)) === $data){

@@ -1,12 +1,12 @@
 === Ryviu – Review Importer & Product Reviews ===
 Contributors: ryviu
 Donate link: https://www.ryviu.com/pricing
-Tags: reviews, dropshiping, woocommerce reviews, fake reviews, manage reviews
+Tags: reviews, dropshipping, woocommerce reviews, fake reviews, manage reviews
 Requires at least: 4.0
-Tested up to: 6.9
+Tested up to: 7.1
 WC requires at least: 3.0
-WC tested up to: 10.7
-Stable tag: 3.1.27
+WC tested up to: 11.0
+Stable tag: 3.1.28
 License: GPLv2 or later
 License URI: http://www.gnu.org/licenses/gpl-2.0.html
 
@@ -68,6 +68,10 @@ Seamlessly integrated with WooCommerce, Ryviu makes it simple to import, manage,
 3. Go to the plugin page in your Wordpress admin account and install Ryviu Plugin
 
 == Changelog ==
+
+= 3.1.28 =
+- New: "Delete all data on uninstall" option (Settings > Advanced), off by default, so your reviews data is kept safe if the plugin is ever deleted by mistake. Enable it if you want a full data cleanup when uninstalling.
+- Improvement: uninstall now also cleans up remaining Ryviu options and the WooCommerce API key created for Ryviu when the new option is enabled.
 
 = 3.1.26 =
 - Fix bug sync reviews and widget

@@ -77,7 +77,7 @@ class RyviuMain {
 
     public static function update_product_slug($slug) {
         $update_link = 'https://app.ryviu.io/update-client-settings';
-        wp_remote_post($update_link , array( 'body' => array('domain' => site_url(), 'product_slug' => $slug)));
+        wp_remote_post($update_link , array( 'body' => array('domain' => constant('RYVIU_SHOP_DOMAIN'), 'product_slug' => $slug)));
         $settings = get_option( 'ryviu_client_settings' );
         $settings->design_settings->product_slug = 'products';
         if($settings && $settings != new \stdClass()){
@@ -101,7 +101,7 @@ class RyviuMain {
         $update_link = 'https://app.ryviu.io/update-client-settings';
         $response = wp_remote_post($update_link, [
             'body' => [
-                'domain' => site_url(),
+                'domain' => constant('RYVIU_SHOP_DOMAIN'),
                 'ryviu_version' => $ryviu_version
             ]
         ]);
@@ -176,9 +176,35 @@ class RyviuMain {
 
     // Uninstall Function
     public static function uninstall(){
+        global $wpdb;
+
+        // Customers opt in to full data removal via Settings > Advanced > "Delete
+        // all data on uninstall" (default off), so an accidental plugin deletion
+        // never silently wipes their reviews data.
+        $ryviu_settings_reviews = get_option( 'ryviu_settings_reviews' );
+        $delete_data = is_array( $ryviu_settings_reviews )
+            && isset( $ryviu_settings_reviews['delete_data_on_uninstall'] )
+            && $ryviu_settings_reviews['delete_data_on_uninstall'] === 'on';
+
         delete_option( 'ryviu_client_settings' );
         delete_option( 'ryviu_settings_reviews' );
-        wp_remote_post( RYVIU_APP_HOOK_URL.'uninstall-woo', array( 'body' => array('domain' => site_url())));
+        delete_option( 'ryviu_frr_status' );
+        delete_option( 'ryviu_version' );
+        delete_option( 'ryviu_request' );
+        delete_option( 'ryviu_user_settings' );
+
+        if ( $delete_data ) {
+            $wpdb->query(
+                "DELETE FROM {$wpdb->postmeta} WHERE meta_key IN ('ryviu_product_reviews_info', '_r_avg', '_r_count')"
+            );
+
+            $wc_api_table = $wpdb->prefix . 'woocommerce_api_keys';
+            if ( $wpdb->get_var( $wpdb->prepare( 'SHOW TABLES LIKE %s', $wc_api_table ) ) === $wc_api_table ) {
+                $wpdb->query( "DELETE FROM $wc_api_table WHERE description LIKE 'Ryviu%'" );
+            }
+        }
+
+        wp_remote_post( RYVIU_APP_HOOK_URL.'uninstall-woo', array( 'body' => array('domain' => constant('RYVIU_SHOP_DOMAIN'))));
     }
 
     // Sort Ryviu run after Woo

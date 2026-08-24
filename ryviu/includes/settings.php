@@ -69,13 +69,14 @@ class RyviuSettings{
                 <a class="ryviu-page--btn ryviu-page--btnnd r-rate--us" rel="noopener" href="https://wordpress.org/support/plugin/ryviu/reviews/#new-post" target="_blank">&#9733; Rate Us</a>
             </div>
         </div>
+        <hr class="wp-header-end">
         <div class="wrap">
-            
+
             <form method="post" action="options.php">
                 <?php
                     // This prints out all hidden setting fields
                     settings_fields( 'ryviu_option_group' );
-                    do_settings_sections( 'ryviu-setting-admin' );
+                    $this->render_settings_sections( 'ryviu-setting-admin' );
 
                     echo '<div class="info">
                     <p><strong>Priority</strong>: Used to specify the order in which the functions associated with a particular action are executed. Lower numbers correspond with earlier execution, and functions with the same priority are executed in the order in which they were added to the action.</p>
@@ -86,6 +87,45 @@ class RyviuSettings{
             </form>
         </div>
         <?php
+    }
+
+    /**
+     * Renders each registered settings section as a separate "card" so related
+     * options are visually grouped, instead of one continuous list of fields.
+     * Functionally equivalent to core's do_settings_sections(), just with a
+     * wrapper div + icon around every section.
+     */
+    public function render_settings_sections( $page )
+    {
+        global $wp_settings_sections, $wp_settings_fields;
+
+        if ( empty( $wp_settings_sections[ $page ] ) ) {
+            return;
+        }
+
+        $sections_meta = $this->get_sections();
+
+        foreach ( (array) $wp_settings_sections[ $page ] as $section ) {
+            $icon = isset( $sections_meta[ $section['id'] ]['icon'] ) ? $sections_meta[ $section['id'] ]['icon'] : 'dashicons-admin-generic';
+
+            echo '<div class="ryviu-settings-card" id="' . esc_attr( $section['id'] ) . '">';
+
+            if ( $section['title'] ) {
+                echo '<h2 class="ryviu-settings-card__title"><span class="dashicons ' . esc_attr( $icon ) . '"></span>' . $section['title'] . '</h2>';
+            }
+
+            if ( $section['callback'] ) {
+                call_user_func( $section['callback'], $section );
+            }
+
+            if ( isset( $wp_settings_fields[ $page ][ $section['id'] ] ) ) {
+                echo '<table class="form-table" role="presentation">';
+                do_settings_fields( $page, $section['id'] );
+                echo '</table>';
+            }
+
+            echo '</div>';
+        }
     }
 
     /**
@@ -100,44 +140,109 @@ class RyviuSettings{
         );
 
 
-        add_settings_section(
-            'general_id', // ID
-            'Ryviu settings', // Title
-            array( $this, 'print_section_info' ), // Callback
-            'ryviu-setting-admin' // Page
-        );
+        foreach ($this->get_sections() as $section_id => $section) {
+            add_settings_section(
+                $section_id, // ID
+                $section['title'], // Title
+                array( $this, $section['callback'] ), // Callback
+                'ryviu-setting-admin' // Page
+            );
+        }
+
         foreach ($this->general_settings() as $field) {
             add_settings_field(
                 $field['name'], // name
                 $field['title'], // Title
                 array( $this, $field['name'].'_callback' ), // Callback
                 'ryviu-setting-admin', // Page
-                'general_id' // Section
+                $field['section'] // Section
             );
         }
     }
-   
+
+    /**
+     * Groups of settings sections, shown as separate boxes on the settings page
+     * so customers can find related options more easily.
+     */
+    public function get_sections(){
+        return [
+            'section_display' => [
+                'title' => 'Display',
+                'callback' => 'print_section_display',
+                'icon' => 'dashicons-desktop',
+            ],
+            'section_ratings_widget' => [
+                'title' => 'Ratings Widget',
+                'callback' => 'print_section_ratings_widget',
+                'icon' => 'dashicons-star-filled',
+            ],
+            'section_reviews_widget' => [
+                'title' => 'Reviews Widget',
+                'callback' => 'print_section_reviews_widget',
+                'icon' => 'dashicons-testimonial',
+            ],
+            'section_questions' => [
+                'title' => 'Questions & Answers',
+                'callback' => 'print_section_questions',
+                'icon' => 'dashicons-editor-help',
+            ],
+            'section_advanced' => [
+                'title' => 'Compatibility & Advanced',
+                'callback' => 'print_section_advanced',
+                'icon' => 'dashicons-admin-tools',
+            ],
+        ];
+    }
+
+    public function print_section_display(){
+        echo '<p class="ryviu-section-desc">General display settings for the Ryviu widget interface.</p>';
+    }
+
+    public function print_section_ratings_widget(){
+        echo '<p class="ryviu-section-desc">Configure how the star rating summary appears on product and collection pages.</p>';
+    }
+
+    public function print_section_reviews_widget(){
+        echo '<p class="ryviu-section-desc">Configure the reviews list widget and its tab on the product page.</p>';
+    }
+
+    public function print_section_questions(){
+        echo '<p class="ryviu-section-desc">Configure the Questions & Answers area on the product page.</p>';
+    }
+
+    public function print_section_advanced(){
+        echo '<p class="ryviu-section-desc">Theme compatibility, CDN, and other advanced options.</p>';
+    }
+
     public function general_settings(){
         $fields = [
-            'ryviu_frontend_version' => 'Reviews widget interface',
-            'position_display_widget' => 'Star rating on product page',
-            'show_average_rating' => 'Show average rating',
-            'position_display_widget_in_loop' => 'Star rating on collection page',
-            'position_display' => 'Review box on product page',
-            'custom_tab_title' => 'Title reviews tab',
-            'active_reviews_tab' => 'Default active review tab',
-            'one_column_mobile' => '1 column on mobile',
-            'remove_write_review' => 'Write a Review button',
-            'element_trigger_click' => 'Title reviews tab HTML',
-            'question_and_answer' => 'Question and Answer',
-            'custom_question_tab_title' => 'Title Question & Answer tab',
-            'wordpress_theme' => 'Wordpress Theme',
-            'data_rocket_status' => 'Cloudfare CDN & Data Rocket',
+            'ryviu_frontend_version' => ['title' => 'Reviews widget interface', 'section' => 'section_display'],
+
+            'position_display_widget' => ['title' => 'Star rating on product page', 'section' => 'section_ratings_widget'],
+            'show_average_rating' => ['title' => 'Show average rating', 'section' => 'section_ratings_widget'],
+            'position_display_widget_in_loop' => ['title' => 'Star rating on collection page', 'section' => 'section_ratings_widget'],
+
+            'position_display' => ['title' => 'Review box on product page', 'section' => 'section_reviews_widget'],
+            'custom_tab_title' => ['title' => 'Title reviews tab', 'section' => 'section_reviews_widget'],
+            'active_reviews_tab' => ['title' => 'Default active review tab', 'section' => 'section_reviews_widget'],
+            'element_trigger_click' => ['title' => 'Title reviews tab HTML', 'section' => 'section_reviews_widget'],
+            'one_column_mobile' => ['title' => '1 column on mobile', 'section' => 'section_reviews_widget'],
+            'remove_write_review' => ['title' => 'Write a Review button', 'section' => 'section_reviews_widget'],
+
+            'question_and_answer' => ['title' => 'Question and Answer', 'section' => 'section_questions'],
+            'custom_question_tab_title' => ['title' => 'Title Question & Answer tab', 'section' => 'section_questions'],
+
+            'wordpress_theme' => ['title' => 'Wordpress Theme', 'section' => 'section_advanced'],
+            'data_rocket_status' => ['title' => 'Cloudfare CDN & Data Rocket', 'section' => 'section_advanced'],
+            'ryviu_static_domain' => ['title' => 'Static domain (advanced)', 'section' => 'section_advanced'],
+            'delete_data_on_uninstall' => ['title' => 'Delete all data on uninstall', 'section' => 'section_advanced'],
         ];
-    
-        return array_map(function($name, $title) {
-            return ['name' => $name, 'title' => $title];
-        }, array_keys($fields), array_values($fields));
+
+        $result = [];
+        foreach ($fields as $name => $data) {
+            $result[] = ['name' => $name, 'title' => $data['title'], 'section' => $data['section']];
+        }
+        return $result;
     }
 
     public function check_selected($val1 = '1', $val2 = '2'){
@@ -176,13 +281,6 @@ class RyviuSettings{
         flush_rewrite_rules();
 
         return $new_input;
-    }
-
-    /**
-     * Print the Section text
-     */
-    public function print_section_info(){
-        print 'Enter your settings below:';
     }
 
     /**
@@ -332,6 +430,30 @@ class RyviuSettings{
                 <input class="tgl tgl-light" id="cb1" type="checkbox" '.checked( $status, 'on', false ).' name="ryviu_settings_reviews['.$name.']"/>
                 <label class="tgl-btn" for="cb1"></label>
             </li></ul> <span>Enable this option when your site using Cloudfare CDN and Data Rocket</span></div>';
+    }
+
+    public function delete_data_on_uninstall_callback(){
+        $name = 'delete_data_on_uninstall';
+        $status = isset($this->options[$name])? $this->options[$name]: 0;
+
+        echo '<div class="nice_fields rpl-one-col">
+                <ul class="tg-list">
+                    <li class="tg-list-item">
+                        <input class="tgl tgl-light" id="cb-delete-data" type="checkbox" '.checked( $status, 'on', false ).' name="ryviu_settings_reviews['.$name.']"/>
+                        <label class="tgl-btn" for="cb-delete-data"></label>
+                    </li>
+                </ul> <span>When enabled, deleting the Ryviu plugin will permanently remove all your reviews data (imported reviews, ratings) and settings from this store\'s database. Leave this off to keep your reviews data safe if the plugin is ever deleted by mistake.</span>
+            </div>';
+    }
+
+    public function ryviu_static_domain_callback(){
+        $name = 'ryviu_static_domain';
+        $val = isset($this->options[$name]) ? $this->options[$name] : '';
+        $urlparts = wp_parse_url( site_url() );
+        $current_domain = isset($urlparts['host']) ? $urlparts['host'] : '';
+
+        echo '<input type="text" id="'.$name.'" name="ryviu_settings_reviews['.$name.']" aria-describedby="ryviu-static-domain-desc" placeholder="'.esc_attr($current_domain).'" value="'.esc_attr($val).'" class="regular-text">';
+        echo '<p class="description" id="ryviu-static-domain-desc">Leave blank to use your site domain ('.esc_html($current_domain).') automatically. Set a static domain here if it differs from the domain registered with Ryviu (e.g. staging, dev, or proxy setups) — this value is used as the shop identifier (RYVIU_SHOP_DOMAIN) for all Ryviu API/webhook calls.</p>';
     }
 
     public static function __($name){

@@ -340,12 +340,41 @@ p.custom_position_display_reviews code input {
     width: 100%;
 }
 
-.settings_page_ryviu-setting-admin #wpbody-content h2 {
-    font-size: 22px;
-    margin-top: 35px;
-    margin-bottom: 10px;
-    line-height: 1.5;
-    position: relative;
+.settings_page_ryviu-setting-admin .ryviu-settings-card {
+    background: #fff;
+    border: 1px solid #e5e5e5;
+    border-radius: 8px;
+    box-shadow: 0 1px 2px rgba(0, 0, 0, 0.04);
+    padding: 20px 24px 8px;
+    margin: 0 0 20px;
+}
+
+.settings_page_ryviu-setting-admin .ryviu-settings-card__title {
+    font-size: 18px;
+    line-height: 1.4;
+    margin: 0 0 6px;
+    padding: 0;
+    border: none;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.settings_page_ryviu-setting-admin .ryviu-settings-card__title .dashicons {
+    color: #2d89c2;
+    width: 20px;
+    height: 20px;
+    font-size: 20px;
+}
+
+.settings_page_ryviu-setting-admin .ryviu-section-desc {
+    color: #666;
+    font-size: 13px;
+    margin: 0 0 15px;
+}
+
+.settings_page_ryviu-setting-admin .ryviu-settings-card .form-table {
+    margin: 0;
 }
 
 .settings_page_ryviu-setting-admin.wp-core-ui .button-primary {
@@ -380,8 +409,44 @@ p.custom_position_display_reviews code input {
     font-size: 13px;
 }
 
-.settings_page_ryviu-setting-admin .wrap form {
-    max-width: 860px;
+/* Give the right edge of the cards the same gutter as the left edge (which
+   comes from the admin menu spacing), and keep notices lined up with it —
+   WP's default .wrap margin-right and .notice margin-right don't match. */
+.settings_page_ryviu-setting-admin .wrap {
+    margin-right: 20px;
+}
+
+/* Keep every notice on this page (including WordPress's own "Settings saved."
+   message) at the same vertical rhythm as the cards below them. */
+.settings_page_ryviu-setting-admin .notice {
+    margin: 20px 20px 20px 0;
+}
+
+/* Make the dismissible "Ryviu:" notices stand out, on the Ryviu settings page only. */
+.settings_page_ryviu-setting-admin .notice.r-cl-update,
+.settings_page_ryviu-setting-admin .notice.r-cl-connect {
+    padding: 14px 38px 14px 16px;
+    border-radius: 6px;
+    border-left-width: 4px;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.06);
+}
+
+.settings_page_ryviu-setting-admin .notice.notice-info.r-cl-update {
+    background: #eef6fc;
+}
+
+.settings_page_ryviu-setting-admin .notice.notice-error.r-cl-connect {
+    background: #fdf1f1;
+}
+
+.settings_page_ryviu-setting-admin .notice.notice-success.r-cl-connect {
+    background: #edf9ee;
+}
+
+.settings_page_ryviu-setting-admin .notice.r-cl-update .r--notices,
+.settings_page_ryviu-setting-admin .notice.r-cl-connect .r--notices {
+    height: auto;
+    min-height: 40px;
 }
 
 .settings_page_ryviu-setting-admin .custom_position_display_reviews {
@@ -450,10 +515,10 @@ p.custom_position_display_reviews code input {
 
 .ryviu-page--header {
     padding: 30px 0 30px;
+    margin-right: 20px;
     display: flex;
     align-items: center;
     border-bottom: 1px solid #d5d5d5;
-    max-width: 860px;
 }
 
 .ryviu-page--intro {
