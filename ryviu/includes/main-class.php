@@ -28,7 +28,14 @@ class RyviuMain {
                         
                         if ($settings_body->status != 'error') {
                             $updated_settings = json_decode($settings_body->settings);
-                            if ($updated_settings) {
+                            // An empty object (settings: "{}") means the store has no real
+                            // design settings yet on the Ryviu side; json_decode() still
+                            // returns a truthy stdClass for it, so check it actually has
+                            // properties before treating the reconnect as successful -
+                            // otherwise we save an empty object and the admin notice (which
+                            // compares against `new \stdClass()`) flags it as broken again
+                            // on the very next page load.
+                            if ($updated_settings && (array) $updated_settings !== array()) {
                                 // Update the Ryviu client settings
                                 update_option('ryviu_client_settings', $updated_settings);
                                
@@ -52,8 +59,9 @@ class RyviuMain {
                                     ]);
                                 }
                             } else {
-                                // Handle case where settings could not be decoded
-                                $mes = 'Failed to update settings. Please try again.';
+                                // Settings could not be decoded, or the store is linked but
+                                // has no review settings configured on Ryviu yet.
+                                $mes = 'Your store is linked, but no review settings were found on your Ryviu account yet. Please finish setting up your store in the Ryviu dashboard.';
                             }
                         } else {
                             // Error message if the status is 'error' or if settings_body is null
@@ -75,9 +83,36 @@ class RyviuMain {
         }
 	}
 
+    /**
+     * Sign an update-client-settings request body the same way the
+     * WooCommerce REST API key already issued to Ryviu signs the dashboard
+     * auto-login (see RyviuSettings::handle_dashboard_login() and
+     * ryviu_get_wc_secret() in woo-hooks.php). Unsigned if no key exists yet
+     * (phase 1 on the server still accepts and logs those).
+     */
+    private static function sign_client_settings_body($body, $product_slug = '', $ryviu_version = '') {
+        $api_key = function_exists( 'ryviu_get_wc_secret' ) ? ryviu_get_wc_secret() : false;
+        if ( ! $api_key ) {
+            return $body;
+        }
+
+        $domain    = constant( 'RYVIU_SHOP_DOMAIN' );
+        $timestamp = (string) time();
+        $payload   = implode( '|', array( $domain, $timestamp, (string) $product_slug, (string) $ryviu_version ) );
+
+        $body['timestamp'] = $timestamp;
+        $body['signature'] = hash_hmac( 'sha256', $payload, $api_key->consumer_secret );
+
+        return $body;
+    }
+
     public static function update_product_slug($slug) {
         $update_link = 'https://app.ryviu.io/update-client-settings';
-        wp_remote_post($update_link , array( 'body' => array('domain' => constant('RYVIU_SHOP_DOMAIN'), 'product_slug' => $slug)));
+        $body = self::sign_client_settings_body(
+            array( 'domain' => constant('RYVIU_SHOP_DOMAIN'), 'product_slug' => $slug),
+            $slug
+        );
+        wp_remote_post($update_link , array( 'body' => $body));
         $settings = get_option( 'ryviu_client_settings' );
         $settings->design_settings->product_slug = 'products';
         if($settings && $settings != new \stdClass()){
@@ -99,11 +134,16 @@ class RyviuMain {
     
         // Prepare and send the POST request to update client settings
         $update_link = 'https://app.ryviu.io/update-client-settings';
-        $response = wp_remote_post($update_link, [
-            'body' => [
+        $body = self::sign_client_settings_body(
+            array(
                 'domain' => constant('RYVIU_SHOP_DOMAIN'),
                 'ryviu_version' => $ryviu_version
-            ]
+            ),
+            '',
+            $ryviu_version
+        );
+        $response = wp_remote_post($update_link, [
+            'body' => $body
         ]);
         if($res){
             // Check if the POST request was successful

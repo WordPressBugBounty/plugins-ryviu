@@ -15,7 +15,7 @@
  * Plugin Name:       Ryviu – Review Importer & Product Reviews
  * Plugin URI:        https://www.ryviu.com
  * Description:       Import product reviews from AliExpress, Amazon, and Etsy to WooCommerce in seconds. Boost social proof for your dropshipping store with photo reviews and Q&A. With Ryviu, you can easily customize and display these reviews on your store.
- * Version:           3.1.28
+ * Version:           3.1.29
  * Requires at least: 4.0
  * Tested up to:      7.1
  * WC requires at least: 3.0
@@ -44,7 +44,7 @@ if ( is_array( $ryviu_settings_reviews ) && ! empty( $ryviu_settings_reviews['ry
 }
 
 define('RYVIU_SHOP_DOMAIN', $domain);
-define('RYVIU_WOO_VERSION', '3.1.28');
+define('RYVIU_WOO_VERSION', '3.1.29');
 defined('DS') ? null : define('DS', DIRECTORY_SEPARATOR);
 define('RYVIU_DIR_PATH', plugin_dir_path(__FILE__) );
 define('RYVIU_URL_ASSETS', plugins_url( 'assets/', __FILE__ ) );

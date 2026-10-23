@@ -6,7 +6,7 @@ Requires at least: 4.0
 Tested up to: 7.1
 WC requires at least: 3.0
 WC tested up to: 11.0
-Stable tag: 3.1.28
+Stable tag: 3.1.29
 License: GPLv2 or later
 License URI: http://www.gnu.org/licenses/gpl-2.0.html
 
@@ -68,6 +68,9 @@ Seamlessly integrated with WooCommerce, Ryviu makes it simple to import, manage,
 3. Go to the plugin page in your Wordpress admin account and install Ryviu Plugin
 
 == Changelog ==
+
+= 3.1.29 =
+- Improvement: requests to update your store's product slug / frontend version now carry an HMAC signature (using your store's WooCommerce API key) so Ryviu can verify they came from your store.
 
 = 3.1.28 =
 - New: "Delete all data on uninstall" option (Settings > Advanced), off by default, so your reviews data is kept safe if the plugin is ever deleted by mistake. Enable it if you want a full data cleanup when uninstalling.
