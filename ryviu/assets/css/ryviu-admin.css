@@ -575,3 +575,31 @@ p.custom_position_display_reviews code input {
         display: none;
     }
 }
+
+.ryviu-connection-status {
+    font-size: 13px;
+    line-height: 1.6;
+    margin: 4px 0 0;
+    padding: 8px 14px;
+    border-radius: 4px;
+    border-left: 4px solid transparent;
+    max-width: 640px;
+}
+
+.ryviu-connection-status p {
+    margin: 0;
+}
+
+.ryviu-connection-status--ok {
+    background: #edf9ee;
+    border-left-color: #46b450;
+}
+
+.ryviu-connection-status--warn {
+    background: #fdeeee;
+    border-left-color: #dc3232;
+}
+
+.ryviu-connection-status .description {
+    color: #666;
+}

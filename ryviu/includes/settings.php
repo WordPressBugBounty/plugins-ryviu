@@ -18,8 +18,68 @@ class RyviuSettings{
         add_action( 'admin_menu', array( $this, 'add_plugin_page' ) );
         add_action( 'admin_init', array( $this, 'page_init' ) );
         add_action( 'admin_enqueue_scripts', array( $this, 'load_admin_style' ) );
+        add_action( 'admin_post_ryviu_dashboard_login', array( $this, 'handle_dashboard_login' ) );
     }
 
+    /**
+     * Sign the store into its Ryviu account and hand off to the dashboard.
+     *
+     * Reuses the WooCommerce REST API key/secret already issued to Ryviu
+     * (see ryviu_get_wc_secret() in woo-hooks.php, the same credentials used
+     * to sign outgoing webhooks) so the backend can verify this request came
+     * from the connected store before minting a session.
+     */
+    public function handle_dashboard_login(){
+        if ( ! current_user_can( 'manage_options' ) || ! check_admin_referer( 'ryviu_dashboard_login' ) ) {
+            wp_die( 'Unauthorized request.', 'Request Error', array( 'response' => 403 ) );
+        }
+
+        $ryviu_app_base = 'https://app.ryviu.io';
+
+        $domain = constant( 'RYVIU_SHOP_DOMAIN' );
+        $api_key = function_exists( 'ryviu_get_wc_secret' ) ? ryviu_get_wc_secret() : false;
+
+        if ( ! $api_key ) {
+            // TODO(temp debug): remove the ?ryviu_debug= reason code once the
+            // auto-login flow is confirmed working end-to-end on production.
+            wp_redirect( $ryviu_app_base . '/login?ryviu_debug=no_wc_api_key' );
+            exit;
+        }
+
+        $timestamp = time();
+        $signature = hash_hmac( 'sha256', $domain . '|' . $timestamp, $api_key->consumer_secret );
+
+        $url = add_query_arg(
+            array(
+                'timestamp' => $timestamp,
+                'signature' => $signature,
+            ),
+            $ryviu_app_base . '/client/dashboard-login/' . base64_encode( $domain )
+        );
+
+        wp_redirect( $url );
+        exit;
+    }
+
+    /**
+     * Surface whether this store still holds the WooCommerce REST API key
+     * Ryviu uses to sign webhooks (product/order sync) and the dashboard
+     * auto-login handoff above. Without this, a dropped/never-created key
+     * stays invisible until one of those features quietly breaks.
+     */
+    private function render_wc_connection_status(){
+        $api_key = function_exists( 'ryviu_get_wc_secret' ) ? ryviu_get_wc_secret() : false;
+
+        if ( $api_key ) {
+            echo '<div class="ryviu-connection-status ryviu-connection-status--ok">';
+            echo '<p><strong>WooCommerce API connected.</strong> Product/order sync and the Ryviu Dashboard button above are working normally. <span class="description">(key: ' . esc_html( $api_key->description ) . ')</span></p>';
+            echo '</div>';
+        } else {
+            echo '<div class="ryviu-connection-status ryviu-connection-status--warn">';
+            echo '<p><strong>WooCommerce API not connected.</strong> Product/order sync and the Ryviu Dashboard button above won\'t work until this store is connected. <a href="https://app.ryviu.io/login" target="_blank" rel="noopener">Log in to Ryviu</a> and reconnect this store to fix it.</p>';
+            echo '</div>';
+        }
+    }
 
     public function load_admin_style() {
         wp_enqueue_style( 'ryviu-admin-style', RYVIU_URL_ASSETS . 'css/ryviu-admin.css', false, time() );
@@ -64,9 +124,10 @@ class RyviuSettings{
             <div class="ryviu-page--intro">
                 <h1 class="ryviu-page--title">Welcome to Ryviu!</h1>
                 <p class="ryviu-page--intro">Ryviu is a product review app that helps you generate eCommerce social proof, increase trust & sales. You can easy to customize reviews with Ryviu and show them in your store.</p>
-                <a class="ryviu-page--btn" href="https://app.ryviu.io" rel="noopener" target="_blank">Ryviu Dashboard</a>
+                <a class="ryviu-page--btn" href="<?php echo esc_url( wp_nonce_url( admin_url( 'admin-post.php?action=ryviu_dashboard_login' ), 'ryviu_dashboard_login' ) ); ?>" rel="noopener" target="_blank">Ryviu Dashboard</a>
                 <a class="ryviu-page--btn ryviu-page--btnnd" rel="noopener" href="https://docs.ryviu.com/en/collections/1861213-woocommerce" target="_blank">Document</a>
                 <a class="ryviu-page--btn ryviu-page--btnnd r-rate--us" rel="noopener" href="https://wordpress.org/support/plugin/ryviu/reviews/#new-post" target="_blank">&#9733; Rate Us</a>
+                <?php $this->render_wc_connection_status(); ?>
             </div>
         </div>
         <hr class="wp-header-end">
