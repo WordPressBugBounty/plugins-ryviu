@@ -202,7 +202,37 @@ if($check_ryviu_connect){
 			}
 			break;
 		}
+
+		// Elementor Essential Addons "Product Grid" does not run the WooCommerce loop hooks above, it prints
+		// WooCommerce's own stars (wc_get_rating_html) instead, so the Ryviu total (rating + review count) was missing
+		// there. Swap those stars for the Ryviu total, only while that grid is rendering.
+		if ( in_array( (int) $position_display_widget_in_loop, array( 5, 6, 10 ), true ) ) {
+			add_action( 'eael_woo_before_product_loop', 'ryviu_eael_product_loop_start' );
+			add_action( 'eael_woo_after_product_loop', 'ryviu_eael_product_loop_end' );
+		}
 	}
+}
+
+function ryviu_eael_product_loop_start() {
+	static $style_printed = false;
+	// Products with no rating get Essential Addons' own empty stars (Helper::eael_rating_markup, no filter to hook).
+	// Hide them like the shop page, where a product without reviews shows no stars.
+	if ( ! $style_printed ) {
+		$style_printed = true;
+		echo '<style>.eael-product-wrap .eael-star-rating{display:none !important;}</style>';
+	}
+	add_filter( 'woocommerce_product_get_rating_html', 'ryviu_eael_rating_html', 20 );
+}
+
+function ryviu_eael_product_loop_end() {
+	remove_filter( 'woocommerce_product_get_rating_html', 'ryviu_eael_rating_html', 20 );
+}
+
+function ryviu_eael_rating_html( $html ) {
+	ob_start();
+	ryviu_widget_rating_total_in_product_category();
+	$widget = ob_get_clean();
+	return '' !== trim( $widget ) ? $widget : $html;
 }
 
 /**
@@ -257,7 +287,8 @@ function ryviu_wiget_get_meta_info($product, $alway_update = false){
 	$r_avg = 0;
 	$r_count = 0;
 	$meta_info_obj = '0;0';
-	if ( is_wp_error( $meta_info_res ) ) {
+	// Network error or a non-200 reply from Ryviu: keep the stored meta instead of overwriting it with an error page.
+	if ( is_wp_error( $meta_info_res ) || 200 !== (int) wp_remote_retrieve_response_code( $meta_info_res ) ) {
 		return $meta_info_obj;
 	} else {
 		$meta_info = $meta_info_res['body'];
@@ -291,6 +322,67 @@ function ryviu_wiget_get_meta_info($product, $alway_update = false){
 	}
 }
 
+/*
+ * Refresh the product rating meta from inside WordPress.
+ *
+ * `ryviu_product_reviews_info` used to change only when the Ryviu backend pushed it through the
+ * WooCommerce REST API, or when an admin clicked "Update". Stores whose Cloudflare/WAF blocks
+ * /wp-json/ never received that push, so products whose reviews were all deleted kept showing
+ * old stars and review counts.
+ *
+ * Here the plugin asks Ryviu itself (an outgoing request from the WordPress server, which the
+ * store's WAF does not filter): products shown by a widget are queued, and at the end of the
+ * request a background WP-Cron event refreshes them, each product at most once per
+ * RYVIU_META_REFRESH_TTL. Nothing is fetched while the page renders, so pages are not slowed down.
+ */
+if ( ! defined( 'RYVIU_META_REFRESH_TTL' ) ) {
+	define( 'RYVIU_META_REFRESH_TTL', 12 * HOUR_IN_SECONDS );
+}
+// Max products refreshed per cron run (a category page can list many products).
+if ( ! defined( 'RYVIU_META_REFRESH_BATCH' ) ) {
+	define( 'RYVIU_META_REFRESH_BATCH', 20 );
+}
+
+function ryviu_queue_meta_refresh( $product_id ) {
+	global $ryviu_meta_refresh_queue;
+	$product_id = (int) $product_id;
+	if ( $product_id <= 0 || get_transient( 'ryviu_meta_chk_' . $product_id ) ) {
+		return;
+	}
+	if ( ! is_array( $ryviu_meta_refresh_queue ) ) {
+		$ryviu_meta_refresh_queue = array();
+	}
+	$ryviu_meta_refresh_queue[ $product_id ] = true;
+}
+
+add_action( 'shutdown', 'ryviu_schedule_meta_refresh' );
+function ryviu_schedule_meta_refresh() {
+	global $ryviu_meta_refresh_queue;
+	if ( empty( $ryviu_meta_refresh_queue ) || ! is_array( $ryviu_meta_refresh_queue ) ) {
+		return;
+	}
+	$ids = array_slice( array_keys( $ryviu_meta_refresh_queue ), 0, RYVIU_META_REFRESH_BATCH );
+	$ryviu_meta_refresh_queue = array();
+	// Mark them first so concurrent requests do not queue the same products again.
+	foreach ( $ids as $id ) {
+		set_transient( 'ryviu_meta_chk_' . $id, 1, RYVIU_META_REFRESH_TTL );
+	}
+	wp_schedule_single_event( time(), 'ryviu_refresh_products_meta', array( $ids ) );
+}
+
+add_action( 'ryviu_refresh_products_meta', 'ryviu_refresh_products_meta' );
+function ryviu_refresh_products_meta( $ids ) {
+	if ( ! is_array( $ids ) || ! function_exists( 'wc_get_product' ) ) {
+		return;
+	}
+	foreach ( $ids as $id ) {
+		$product = wc_get_product( (int) $id );
+		if ( $product ) {
+			ryviu_wiget_get_meta_info( $product, true );
+		}
+	}
+}
+
 // Set value for default reviews Woo
 function check_ryviu_setting($meta_name) {
 	$options  = get_option( 'ryviu_settings_reviews' );
@@ -314,6 +406,9 @@ function ryviu_widget($type = 'widget'){
 			$product_handle = $product->post->post_name;
 		}
 		if($product_handle){
+			// Refresh the rating meta in the background (see ryviu_queue_meta_refresh).
+			ryviu_queue_meta_refresh( $product->get_id() );
+
 			// Reviews Total Widget
 			if($type == 'total' || $type == 'collection'){
 				

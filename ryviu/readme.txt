@@ -6,7 +6,7 @@ Requires at least: 4.0
 Tested up to: 7.1
 WC requires at least: 3.0
 WC tested up to: 11.0
-Stable tag: 3.1.29
+Stable tag: 3.1.30
 License: GPLv2 or later
 License URI: http://www.gnu.org/licenses/gpl-2.0.html
 
@@ -68,6 +68,10 @@ Seamlessly integrated with WooCommerce, Ryviu makes it simple to import, manage,
 3. Go to the plugin page in your Wordpress admin account and install Ryviu Plugin
 
 == Changelog ==
+
+= 3.1.30 =
+- Fix: product ratings and review counts now refresh on their own in the background, so stores whose firewall (e.g. Cloudflare) blocks the WooCommerce REST API no longer keep showing old stars after reviews are deleted.
+- Fix: the Ryviu rating total now shows in the Essential Addons for Elementor "Product Grid" widget.
 
 = 3.1.29 =
 - Improvement: requests to update your store's product slug / frontend version now carry an HMAC signature (using your store's WooCommerce API key) so Ryviu can verify they came from your store.
